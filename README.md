@@ -58,7 +58,7 @@ The `--force` flag applies a **local brute-force refinement** to improve accurac
 
 ## Sample Tests Provided
 
-Two sample test sets are included for evaluation:
+Two sample tests are included for evaluation:
 
 * `image1.jpg`
   Patches: `patch1_1.jpg`, `patch1_2.jpg`, `patch1_3.jpg`, ..., forming a 3x3 grid.
