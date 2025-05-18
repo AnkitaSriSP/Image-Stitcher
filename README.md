@@ -1,104 +1,93 @@
-# Image-Stitcher
-This project reassembles/stitches scrambled image patches into a full image using a combination of deep features (from ResNet18) and edge similarity metrics. It's designed for puzzle-solving or image reconstruction tasks.
----
+# Image Stitcher
 
-## Features
+This project reconstructs an image from shuffled image patches using a hybrid approach, combining **deep feature similarity** (via ResNet18) and **edge strip matching** (using normalized cross-correlation), and then uses a graph-based method to determine patch layout.
 
-- Deep feature extraction using a pretrained **ResNet18**.
-- Edge similarity using **Normalized Cross-Correlation**.
-- Smart patch placement using similarity-based greedy matching.
-- Supports layouts: `horizontal`, `vertical`, or custom `grid RxC` (e.g., `grid 3x4`).
-- Docker-ready.
+It supports various layout styles and includes optional local optimization steps to improve reconstruction accuracy.
 
 ---
 
-### Requirements
+## Quick Start (with Docker)
 
-- Python 3.8+
-- PyTorch
-- torchvision
-- PIL (Pillow)
-- numpy
-- tqdm
-
-Install them manually or use the included Dockerfile (recommended).
-
----
-
-## Docker Usage
-
-### 1. Build the Docker image
+### 1. Build the Docker Image
 
 ```bash
 docker build -t image-stitcher .
 ````
 
-### 2. Run the stitcher
+### 2. Run the Stitching Process
 
 ```bash
-docker run --rm -v $(pwd):/data image-stitcher \
-    img1.jpg img2.jpg img3.jpg img4.jpg \
-    --layout "grid 2x2" \
-    -o result.jpg
+docker run --rm -v $(pwd):/data image-stitcher patch1.jpg patch2.jpg patch3.jpg patch4.jpg \
+--layout grid 2x2 -o output.jpg --patchsize 100x100 --edge_weight 0.6 --force 2
 ```
+
+> Add `--gpus all` to the run command if using a GPU (NVIDIA CUDA supported).
+
 ---
 
-## Usage without Docker
+## Command-Line Usage
 
 ```bash
-python main.py image1.jpg image2.jpg ... imageN.jpg \
-  --layout horizontal|vertical|grid RxC \
-  -o output.jpg \
-  [--threshold 0.3] \
-  [--patchsize 100x100] \
-  [--thickness 5] \
-  [--edge_weight 0.6]
+python main.py <images>... --layout [horizontal | vertical | "grid RxC"] -o <output_file> [options]
 ```
 
 ### Arguments
 
-| Argument         | Description                                                                    |
-| ---------------- | ------------------------------------------------------------------------------ |
-| `images`         | List of input image patches.                                                   |
-| `--layout`       | One of: `horizontal`, `vertical`, or `grid RxC` (e.g. `grid 2x3`). Required.   |
-| `-o`, `--output` | Output path for the stitched image. Required.                                  |
-| `--threshold`    | Similarity threshold to accept patch adjacency (default: 0.5).                 |
-| `--patchsize`    | Resize all patches to `WIDTHxHEIGHT` before processing (default: 100x100).     |
-| `--thickness`    | Thickness of the strip (in pixels) used for edge comparison (default: 5).      |
-| `--edge_weight`  | Relative weight of edge similarity vs. deep feature similarity (default: 0.4). |
+| Argument        | Description                                                                           |
+| --------------- | ------------------------------------------------------------------------------------- |
+| `<images>`      | List of patch images (e.g., img1.jpg img2.jpg ...).                                   |
+| `--layout`      | Layout type: `horizontal`, `vertical`, or `grid RxC` (e.g., `grid 3x3`).              |
+| `-o, --output`  | Output filename (e.g., `stitched.jpg`).                                               |
+| `--patchsize`   | Patch size, formatted as `WIDTHxHEIGHT` (e.g., `100x100`).                            |
+| `--thickness`   | Edge strip thickness for comparison (default: `5`).                                   |
+| `--edge_weight` | Weight for edge similarity (0.0–1.0). Feature similarity weight is `1 - edge_weight`. |
+| `--force`       | Enable local optimization: `1` for one pass, `2` for two passes (recommended).        |
 
 ---
 
-## How It Works
+## Why Use `--force`?
 
-1. **Preprocessing**: Resizes all patches to a uniform size.
-2. **Feature Extraction**: Deep features are extracted using a truncated ResNet18.
-3. **Edge Similarity**: Calculates similarity between patch borders using normalized cross-correlation.
-4. **Grid Assembly**: Starts from a corner patch and greedily assembles neighbors based on similarity scores.
-5. **Stitching**: The grid is rendered into a single image.
+The `--force` flag applies a **local brute-force refinement** to improve accuracy:
+
+* `--force 1`: One pass of patch-swapping based on similarity with neighbors.
+* `--force 2`: Two refinement passes (yields best results but time consuming).
+
+> Improves layout quality in complex or ambiguous cases.
+
+---
+
+## Sample Tests Provided
+
+Two sample test sets are included for evaluation:
+
+* `image1.jpg`
+  Patches: `patch1_1.jpg`, `patch1_2.jpg`, `patch1_3.jpg`, ..., forming a 3x3 grid.
+
+* `image2.jpg`
+  Patches: `patch2_1.jpg`, `patch2_2.jpg`, `patch2_3.jpg`, ..., forming a 4x4 grid.
+
+You can test reconstruction using:
+
+```bash
+docker run --rm -v $(pwd):/data image-stitcher patch1_*.jpg --layout grid 2x2 -o result1.jpg --force 2
+```
+
+Adjust grid dimensions and patch size as per need.
 
 ---
 
 ## Challenges Faced
 
-* Ensuring accurate reassembly across varying grid sizes — while a lower similarity threshold (0.3 used here) performs well for larger grids by allowing more flexibility, it becomes less effective for smaller layouts (like 2×2), where the greedy strategy struggles to find optimal matches, often reducing overall accuracy.
-* **No Rotation or Flip Handling**: This version assumes all patches are upright. It cannot handle rotated or flipped patches.
-* **Greedy Assembly**: The reassembly process uses a greedy strategy. While fast, it does not guarantee globally optimal results. Incorrect early choices may lead to suboptimal final arrangements.
-* The reassembly relies on a greedy placement strategy implying that it does not guarantee a globally optimal solution — this often results in suboptimal patch placements, especially in scenarios with ambiguous or repetitive patterns and similarity across the image.
+While the system performs well in many situations, the following cases are more difficult:
 
----
+* **Repetitive patterns**: Textures or tiles that repeat can confuse both deep features and edge matching.
+* **Weak edges or noisy borders**: Inaccurate edge similarity scores can lead to misplacements.
+* **Low contrast areas**: Deep features may become nearly identical, reducing discriminative power.
 
-## File Structure
-
-```
-main.py          # Main script
-Dockerfile       # Docker support
-README.md        # This file
-```
+Using `--force 2` significantly improves layout robustness in such situations.
 
 ---
 
 ## Output
 
-The output is a stitched image saved to the path specified with `-o` or `--output`.
-
+* The final reassembled image is saved to the file specified by `-o`.
