@@ -37,7 +37,7 @@ docker build -t image-stitcher .
 ### 2. Run the stitcher
 
 ```bash
-docker run --rm -v $PWD:/data image-stitcher \
+docker run --rm -v $(pwd):/data image-stitcher \
     img1.jpg img2.jpg img3.jpg img4.jpg \
     --grid 2x2 \
     -o result.jpg
