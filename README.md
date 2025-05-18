@@ -81,6 +81,7 @@ python main.py image1.jpg image2.jpg ... imageN.jpg \
 
 ## Challenges Faced
 
+* Ensuring accurate reassembly across varying grid sizes — while a lower similarity threshold (0.3 used here) performs well for larger grids by allowing more flexibility, it becomes less effective for smaller layouts (like 2×2), where the greedy strategy struggles to find optimal matches, often reducing overall accuracy.
 * **No Rotation or Flip Handling**: This version assumes all patches are upright. It cannot handle rotated or flipped patches.
 * **Greedy Assembly**: The reassembly process uses a greedy strategy. While fast, it does not guarantee globally optimal results. Incorrect early choices may lead to suboptimal final arrangements.
 
