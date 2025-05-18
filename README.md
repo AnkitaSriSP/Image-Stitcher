@@ -1,6 +1,5 @@
 # Image-Stitcher
 This project reassembles/stitches scrambled image patches into a full image using a combination of deep features (from ResNet18) and edge similarity metrics. It's designed for puzzle-solving or image reconstruction tasks.
-
 ---
 
 ## Features
@@ -8,7 +7,7 @@ This project reassembles/stitches scrambled image patches into a full image usin
 - Deep feature extraction using a pretrained **ResNet18**.
 - Edge similarity using **Normalized Cross-Correlation**.
 - Smart patch placement using similarity-based greedy matching.
-- Works on CPU and GPU.
+- Supports layouts: `horizontal`, `vertical`, or custom `grid RxC` (e.g., `grid 3x4`).
 - Docker-ready.
 
 ---
@@ -39,41 +38,34 @@ docker build -t image-stitcher .
 ```bash
 docker run --rm -v $(pwd):/data image-stitcher \
     img1.jpg img2.jpg img3.jpg img4.jpg \
-    --grid 2x2 \
+    --layout "grid 2x2" \
     -o result.jpg
 ```
-
-Make sure the number of images matches `rows × cols` in the `--grid` argument.
-
 ---
 
-## Manual Installation
-
-```bash
-pip install numpy==1.26.4 opencv-python==4.11.0.86 pillow==11.2.1 scipy==1.15.3 tqdm torchvision
-```
-
----
-
-## Usage
+## Usage without Docker
 
 ```bash
 python main.py image1.jpg image2.jpg ... imageN.jpg \
-    --grid ROWSxCOLS \
-    -o output.jpg \
-    [--threshold 0.6] \
-    [--patchsize 100x100] \
-    [--thickness 10] \
-    [--edge_weight 0.4]
+  --layout horizontal|vertical|grid RxC \
+  -o output.jpg \
+  [--threshold 0.5] \
+  [--patchsize 100x100] \
+  [--thickness 5] \
+  [--edge_weight 0.5]
 ```
 
-### Example
+### Arguments
 
-```bash
-python main.py patch1.jpg patch2.jpg patch3.jpg patch4.jpg \
-    --grid 2x2 \
-    -o stitched.jpg
-```
+| Argument         | Description                                                                    |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `images`         | List of input image patches.                                                   |
+| `--layout`       | One of: `horizontal`, `vertical`, or `grid RxC` (e.g. `grid 2x3`). Required.   |
+| `-o`, `--output` | Output path for the stitched image. Required.                                  |
+| `--threshold`    | Similarity threshold to accept patch adjacency (default: 0.5).                 |
+| `--patchsize`    | Resize all patches to `WIDTHxHEIGHT` before processing (default: 100x100).     |
+| `--thickness`    | Thickness of the strip (in pixels) used for edge comparison (default: 5).      |
+| `--edge_weight`  | Relative weight of edge similarity vs. deep feature similarity (default: 0.4). |
 
 ---
 
@@ -107,6 +99,4 @@ README.md        # This file
 ## Output
 
 The output is a stitched image saved to the path specified with `-o` or `--output`.
-
-
 
