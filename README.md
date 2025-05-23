@@ -18,7 +18,7 @@ docker build -t image-stitcher .
 
 ```bash
 docker run --rm -v $(pwd):/data image-stitcher patch1.jpg patch2.jpg patch3.jpg patch4.jpg \
---layout grid 2x2 -o output.jpg --patchsize 100x100 --edge_weight 0.6 --force 2
+--layout "grid 2x2" -o output.jpg --patchsize 100x100 --edge_weight 0.6 --force 2
 ```
 
 > Add `--gpus all` to the run command if using a GPU (NVIDIA CUDA supported).
