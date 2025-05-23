@@ -58,37 +58,51 @@ def build_grid_brute(patches, sim, rows, cols):
 
     return np.array(best_perm).reshape((rows, cols))
 
-# Local optimization with 3x3 sliding window
+# Local optimization with sliding window 
 def refine_grid_local(grid, sim):
     rows, cols = grid.shape
     new_grid = grid.copy()
 
+    # Case 1: Standard 3x3
+    if rows >= 3 and cols >= 3:
+        a=3
+        b=3
+    # Case 2: Less than 3 rows, at least 3 columns (use 1x3 or 2x3)
+    elif rows < 3 and cols >= 3:
+        a=rows
+        b=3
+        rows=3
+    # Case 3: Less than 3 columns, at least 3 rows (use 3x1 or 3x2)
+    elif cols < 3 and rows >= 3:
+        a=3
+        b=cols
+        cols=3
+
     for r in range(rows - 2):
         for c in range(cols - 2):
-            subgrid = new_grid[r:r+3, c:c+3]
+            subgrid = new_grid[r:r+a, c:c+b]
             patch_indices = subgrid.flatten()
             best_score = float('inf')
             best_perm = None
+            shape=(a,b)
 
             for perm in permutations(patch_indices):
                 score = 0
-                local_grid = np.array(perm).reshape((3, 3))
-                for i in range(3):
-                    for j in range(3):
+                local_grid = np.array(perm).reshape(shape)
+                for i in range(a):
+                    for j in range(b):
                         curr = local_grid[i, j]
-                        if j + 1 < 3:
+                        if j + 1 < b:
                             right = local_grid[i, j + 1]
                             score -= sim['right'][curr][right]
-                        if i + 1 < 3:
+                        if i + 1 < a:
                             bottom = local_grid[i + 1, j]
                             score -= sim['bottom'][curr][bottom]
                 if score < best_score:
                     best_score = score
                     best_perm = perm
 
-            # Replace 3x3 region with best configuration
-            new_grid[r:r+3, c:c+3] = np.array(best_perm).reshape((3, 3))
-
+            new_grid[r:r+a, c:c+b] = np.array(best_perm).reshape((a, b))
     return new_grid
 
 
