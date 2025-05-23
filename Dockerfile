@@ -32,8 +32,5 @@ RUN pip install --no-cache-dir \
 # Pre-download ResNet18 weights
 RUN python -c "from torchvision.models import resnet18, ResNet18_Weights; resnet18(weights=ResNet18_Weights.DEFAULT)"
 
-# Copy your script into the working directory
-COPY . /data
-
 # Set entrypoint to run the script
 ENTRYPOINT ["python", "main.py"]
