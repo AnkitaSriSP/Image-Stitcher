@@ -204,7 +204,7 @@ def main():
     # Parse and process arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('images', nargs='+')
-    parser.add_argument('--layout', required=True, help="horizontal | vertical | grid RxC")
+    parser.add_argument('--layout', required=False, help="horizontal | vertical | grid RxC", default="horizontal")
     parser.add_argument('-o', '--output', required=True)
     parser.add_argument('--threshold', type=float, default=0.5)
     parser.add_argument('--patchsize', default='100x100')
