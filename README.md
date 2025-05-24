@@ -53,7 +53,7 @@ While the system performs well in many situations, the following cases are more 
 * **Repetitive patterns**: Textures or tiles that repeat can confuse both deep features and edge matching.
 * **Weak edges or noisy borders**: Inaccurate edge similarity scores can lead to misplacements.
 * **Low contrast areas**: Deep features may become nearly identical, reducing discriminative power.
-* The image stitcher requires patches to be of the same shape. It cannot handle varying patch shapes.
+* The image stitcher assumes patches to be of the same shape. It cannot handle varying patch shapes.
 
 ---
 
